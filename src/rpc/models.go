@@ -1,14 +1,8 @@
 package rpc
 
-// Request contains information about the client request
+// rpcData contains information about the data trade between client and server
 type rpcData struct {
 	Function string
 	Args     []interface{}
 	Err      error
 }
-
-// // Response contains information about the remote server request response
-// type Response struct {
-// 	Result []interface{}
-// 	Err    error
-// }

@@ -2,29 +2,23 @@ package rpc
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"crypto/tls"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
-	"math/big"
 
 	quic "github.com/lucas-clemente/quic-go"
 )
 
 type serverRequestHandler struct {
-	*invoker
+	invoker *invoker
 }
 
 // newRequestHandler sada
-func NewRequestHandler() serverRequestHandler {
-	invoker := newInvoker()
+func newServerRequestHandler(invoker *invoker) serverRequestHandler {
 	return serverRequestHandler{invoker: invoker}
 }
 
-func (h serverRequestHandler) ServeAndListen(addr string) error {
-	listener, err := quic.ListenAddr(addr, GenerateTLSConfig(), nil)
+func (h serverRequestHandler) ServeAndListen(addr string, tlsConfig *tls.Config) error {
+	listener, err := quic.ListenAddr(addr, tlsConfig, nil)
 	if err != nil {
 		return err
 	}
@@ -43,8 +37,9 @@ func (h serverRequestHandler) ServeAndListen(addr string) error {
 			if err != nil {
 				fmt.Println(3, "server:", err)
 			}
+			transport := newTransportHelper(stream)
 			for {
-				data, err := read(stream)
+				data, err := transport.read()
 				if err != nil {
 					fmt.Println(" error reading mclient msg", err)
 					stream.Close() // deverimos fechar?
@@ -52,7 +47,7 @@ func (h serverRequestHandler) ServeAndListen(addr string) error {
 				}
 
 				response := h.invoker.invoke(data)
-				err = send(stream, response)
+				err = transport.send(response)
 				if err != nil {
 					fmt.Println(" error sending to client", err)
 					stream.Close() // deverimos fechar?
@@ -72,26 +67,3 @@ func (h serverRequestHandler) ServeAndListen(addr string) error {
 // 	encoder := gob.NewEncoder(conn) //arrumar isso para n precisar criar
 // 	return encoder.Encode(&data)
 // }
-
-func GenerateTLSConfig() *tls.Config {
-	key, err := rsa.GenerateKey(rand.Reader, 1024)
-	if err != nil {
-		panic(err)
-	}
-	template := x509.Certificate{SerialNumber: big.NewInt(1)}
-	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
-	if err != nil {
-		panic(err)
-	}
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
-
-	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
-	if err != nil {
-		panic(err)
-	}
-	return &tls.Config{
-		Certificates: []tls.Certificate{tlsCert},
-		NextProtos:   []string{"quic-echo-example"},
-	}
-}

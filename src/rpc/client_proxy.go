@@ -4,31 +4,26 @@ import (
 	"fmt"
 )
 
-// Proxy contains the method for the client proxy
-type Proxy interface {
-	Call(result interface{}, function string, args ...interface{}) error
-}
-
 type proxy struct {
-	Requestor
+	serverAddr string
+	requestor
 }
 
-// NewClientProxy creates a client proxy that translates the local invocation
+// newClientProxy creates a client proxy that translates the local invocation
 // into parameters for the REQUESTOR, triggers the invocation and returns the result
-func NewClientProxy() Proxy {
-	reqh := newRequestHandler() // deveria ser criado aqui?
-	//var h requestHandler        // temporario
-	r := NewRequestor(reqh)
+func newClientProxy(serverAddr string, crh clientRequestHandler) *proxy {
+	r := newRequestor(crh)
 
 	return &proxy{
-		Requestor: r,
+		serverAddr: serverAddr,
+		requestor:  r,
 	}
 }
 
 func (p *proxy) Call(result interface{}, function string, args ...interface{}) error {
 	// lookup
 	//var location string // resultado do lookup
-	reqResponse := p.Invoke("", function, args)
+	reqResponse := p.Invoke(p.serverAddr, function, args)
 
 	response := reqResponse.(rpcData)
 

@@ -6,10 +6,6 @@ import (
 	"reflect"
 )
 
-type Invoker interface {
-	Register(fnName string, fFunc interface{})
-}
-
 type invoker struct {
 	funcs map[string]reflect.Value
 }
@@ -20,14 +16,14 @@ func newInvoker() *invoker {
 }
 
 // Register the name of the function and its entries
-func (i *invoker) Register(fnName string, fFunc interface{}) {
+func (i *invoker) Register(function string, fFunc interface{}) {
 
-	if _, ok := i.funcs[fnName]; ok {
+	if _, ok := i.funcs[function]; ok {
 		return
 	}
 	// colocar thread aqui
-	i.funcs[fnName] = reflect.ValueOf(fFunc)
-	fmt.Println("fucntion", fnName, "registred")
+	i.funcs[function] = reflect.ValueOf(fFunc)
+	fmt.Println("fucntion", function, "registred")
 }
 
 // fazer funcao de unregister
@@ -35,8 +31,8 @@ func (i *invoker) Register(fnName string, fFunc interface{}) {
 func (i *invoker) invoke(data []byte) []byte {
 	fmt.Println(" invoker")
 	req, err := unmarshall(data)
-	fmt.Println(err)
 	if err != nil {
+		fmt.Println(err)
 		return i.returnError(err)
 	}
 
@@ -68,19 +64,19 @@ func (i *invoker) execute(req rpcData) rpcData {
 	// now since we have followed the function signature style where last argument will be an error
 	// so we will pack the response arguments expect error.
 	resArgs := make([]interface{}, len(out))
-	for i := 0; i < len(out); i++ { // TIREI O -1 DAQUI, TEM QUE TRATAR CORRETAMENTE AQUI
+	for i := 0; i < len(out); i++ {
 		// Interface returns the constant value stored in v as an interface{}.
 		resArgs[i] = out[i].Interface()
 	}
 
-	// pack error argument
-	var err error
-	if e, ok := out[len(out)-1].Interface().(error); ok {
-		// convert the error into error string value
-		resArgs = resArgs[:len(out)-1] // ta correto isso?
-		err = e
-	}
-	return rpcData{Args: resArgs, Err: err}
+	// // pack error argument
+	// var err error
+	// if e, ok := resArgs[len(out)-1].(error); ok {
+	// 	// convert the error into error string value
+	// 	resArgs = resArgs[:len(out)-1]
+	// 	err = e
+	// }
+	return rpcData{Args: resArgs}
 }
 
 func (i *invoker) returnError(err error) []byte {

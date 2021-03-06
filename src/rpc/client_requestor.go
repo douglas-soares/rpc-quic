@@ -1,18 +1,13 @@
 package rpc
 
-// Requestor contains
-type Requestor interface {
-	Invoke(location, function string, args []interface{}) interface{}
-}
-
 type requestor struct {
-	requestHandler
+	clientRequestHandler
 }
 
 // NewRequestor creates a new requestor,
-func NewRequestor(h requestHandler) Requestor {
-	return &requestor{
-		requestHandler: h,
+func newRequestor(crh clientRequestHandler) requestor {
+	return requestor{
+		clientRequestHandler: crh,
 	}
 }
 
