@@ -37,8 +37,7 @@ func (r *requestor) Invoke(location, function string, args []interface{}) interf
 		return r.returnError(err)
 	}
 
-	var response models.Response
-	err = marshaller.Unmarshall(reqResponse, &response)
+	response, err := marshaller.Unmarshall(reqResponse)
 	if err != nil {
 		return r.returnError(err)
 	}
@@ -46,8 +45,8 @@ func (r *requestor) Invoke(location, function string, args []interface{}) interf
 	return response
 }
 
-func (r *requestor) returnError(err error) models.Response {
-	return models.Response{
+func (r *requestor) returnError(err error) models.Request {
+	return models.Request{
 		Err: err,
 	}
 }

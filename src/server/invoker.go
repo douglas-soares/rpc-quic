@@ -17,32 +17,47 @@ type invoker struct {
 	funcs map[string]reflect.Value
 }
 
+func newInvoker() *invoker {
+	funcs := make(map[string]reflect.Value)
+	return &invoker{funcs: funcs}
+}
+
 // Register the name of the function and its entries
 func (i *invoker) Register(fnName string, fFunc interface{}) {
+
 	if _, ok := i.funcs[fnName]; ok {
 		return
 	}
 	// colocar thread aqui
 	i.funcs[fnName] = reflect.ValueOf(fFunc)
+	fmt.Println("fucntion", fnName, "registred")
 }
 
 // fazer funcao de unregister
 
-func (i *invoker) invoke(data []byte) models.Response {
-	var req models.Request
-	err := marshaller.Unmarshall(data, &req)
+func (i *invoker) invoke(data []byte) []byte {
+	fmt.Println(" invoker")
+	req, err := marshaller.Unmarshall(data)
+	fmt.Println(err)
 	if err != nil {
 		return i.returnError(err)
 	}
 
-	return i.execute(req)
+	response := i.execute(req)
+
+	marshalledResponse, err := marshaller.Marshall(response)
+	if err != nil {
+		return i.returnError(err)
+	}
+
+	return marshalledResponse
 }
 
-func (i *invoker) execute(req models.Request) models.Response {
+func (i *invoker) execute(req models.Request) models.Request {
 	f, ok := i.funcs[req.Function]
 	if !ok {
 		err := fmt.Errorf("func %s not registered", req.Function)
-		return models.Response{Result: nil, Err: err}
+		return models.Request{Args: nil, Err: err}
 	}
 
 	log.Printf("func %s is called\n", req.Function)
@@ -51,13 +66,12 @@ func (i *invoker) execute(req models.Request) models.Response {
 	for i := range req.Args {
 		inArgs[i] = reflect.ValueOf(req.Args[i])
 	}
-
 	// invoke requested method
 	out := f.Call(inArgs)
 	// now since we have followed the function signature style where last argument will be an error
 	// so we will pack the response arguments expect error.
-	resArgs := make([]interface{}, len(out)-1)
-	for i := 0; i < len(out)-1; i++ {
+	resArgs := make([]interface{}, len(out))
+	for i := 0; i < len(out); i++ { // TIREI O -1 DAQUI, TEM QUE TRATAR CORRETAMENTE AQUI
 		// Interface returns the constant value stored in v as an interface{}.
 		resArgs[i] = out[i].Interface()
 	}
@@ -66,13 +80,16 @@ func (i *invoker) execute(req models.Request) models.Response {
 	var err error
 	if e, ok := out[len(out)-1].Interface().(error); ok {
 		// convert the error into error string value
+		resArgs = resArgs[:len(out)-1] // ta correto isso?
 		err = e
 	}
-	return models.Response{Result: resArgs, Err: err}
+	return models.Request{Args: resArgs, Err: err}
 }
 
-func (i *invoker) returnError(err error) models.Response {
-	return models.Response{
+func (i *invoker) returnError(err error) []byte {
+	resp := models.Request{
 		Err: err,
 	}
+	r, _ := marshaller.Marshall(resp) // retornar erro para cancelar conexao no servidor
+	return r
 }
