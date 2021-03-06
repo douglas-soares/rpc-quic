@@ -2,41 +2,41 @@ package rpc
 
 import "crypto/tls"
 
-// ClientRPC con stains
-type ClientRPC interface {
+// Client con stains
+type Client interface {
 	Call(result interface{}, function string, args ...interface{}) error
 }
 
-// NewClientRPC creates
-func NewClientRPC(serverAddr string, tlsConfig *tls.Config) ClientRPC {
+// NewClient creates
+func NewClient(serverAddr string, tlsConfig *tls.Config) Client {
 	crh := newClientRequestHandler(tlsConfig)
 	return newClientProxy(serverAddr, crh)
 }
 
-type ServerRPC interface {
+type Server interface {
 	Register(function string, fFunc interface{})
-	ServeAndListen(addr string, tlsConfig *tls.Config) error
+	ListenAndServe(addr string, tlsConfig *tls.Config) error
 }
 
-type serverRPC struct {
+type server struct {
 	inv *invoker
 	srh serverRequestHandler
 }
 
-func NewServerRPC() ServerRPC {
+func NewServer() Server {
 	invoker := newInvoker()
 	serverRequestHandler := newServerRequestHandler(invoker)
 
-	return &serverRPC{
+	return &server{
 		inv: invoker,
 		srh: serverRequestHandler,
 	}
 }
 
-func (s *serverRPC) Register(function string, fFunc interface{}) {
+func (s *server) Register(function string, fFunc interface{}) {
 	s.inv.Register(function, fFunc)
 }
 
-func (s *serverRPC) ServeAndListen(addr string, tlsConfig *tls.Config) error {
-	return s.srh.ServeAndListen(addr, tlsConfig)
+func (s *server) ListenAndServe(addr string, tlsConfig *tls.Config) error {
+	return s.srh.ListenAndServe(addr, tlsConfig)
 }

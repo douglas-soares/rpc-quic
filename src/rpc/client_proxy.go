@@ -21,13 +21,10 @@ func newClientProxy(serverAddr string, crh clientRequestHandler) *proxy {
 }
 
 func (p *proxy) Call(result interface{}, function string, args ...interface{}) error {
-	// lookup
-	//var location string // resultado do lookup
 	reqResponse := p.Invoke(p.serverAddr, function, args)
-
 	response := reqResponse.(rpcData)
 
-	fmt.Println(response)
+	fmt.Println("Client proxy response:", response)
 
 	// Usar decode para transformar o Response.Result na mesma interface do result
 

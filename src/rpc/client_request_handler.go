@@ -19,7 +19,6 @@ func newClientRequestHandler(tlsConfig *tls.Config) clientRequestHandler {
 }
 
 func (h *clientRequestHandler) send(addr string, msg []byte) ([]byte, error) {
-	fmt.Println(addr)
 	session, err := quic.DialAddr(addr, h.tlsConfig, nil)
 	if err != nil {
 		fmt.Println(1, "client:", err)
