@@ -8,6 +8,10 @@ import (
 	"github.com/douglas-soares/rpc-quick/src/rpc"
 )
 
+type NamingResult struct {
+	Addr string
+}
+
 type naming struct {
 	addr   string
 	server rpc.Server
@@ -40,15 +44,13 @@ func (n *naming) Bind(serverName string, serverAddr string) error {
 	return n.client.Call(nil, "Bind", serverName, serverAddr)
 }
 
-func (n *naming) LookUp(serverName string) (string, error) {
-	var result interface{}
-	err := n.client.Call(result, "LookUp", serverName)
-	fmt.Println(err)
+func (n *naming) LookUp(serverName string) (NamingResult, error) {
+	var result NamingResult
+	err := n.client.Call(&result, "LookUp", serverName)
 	if err != nil {
-
-		return "", err
+		return NamingResult{}, err
 	}
-	return "result.(string)", nil
+	return result, nil
 }
 
 func (n *naming) bind(serverName string, serverInfo string) {
@@ -58,7 +60,7 @@ func (n *naming) bind(serverName string, serverInfo string) {
 	log.Println(servers)
 }
 
-func (n *naming) lookUp(serverName string) string {
+func (n *naming) lookUp(serverName string) NamingResult {
 	fmt.Println("lookup result:", servers[serverName])
-	return servers[serverName]
+	return NamingResult{Addr: servers[serverName]}
 }

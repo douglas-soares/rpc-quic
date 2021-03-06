@@ -29,10 +29,9 @@ func (i *invoker) Register(function string, fFunc interface{}) {
 // fazer funcao de unregister
 
 func (i *invoker) invoke(data []byte) []byte {
-	fmt.Println(" invoker")
 	req, err := unmarshall(data)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("invoker 1", err)
 		return i.returnError(err)
 	}
 
@@ -40,6 +39,7 @@ func (i *invoker) invoke(data []byte) []byte {
 
 	marshalledResponse, err := marshall(response)
 	if err != nil {
+		fmt.Println("invoker 2", err)
 		return i.returnError(err)
 	}
 
@@ -63,6 +63,10 @@ func (i *invoker) execute(req rpcData) rpcData {
 	out := f.Call(inArgs)
 	// now since we have followed the function signature style where last argument will be an error
 	// so we will pack the response arguments expect error.
+
+	if len(out) == 0 {
+		return rpcData{}
+	}
 	resArgs := make([]interface{}, len(out))
 	for i := 0; i < len(out); i++ {
 		// Interface returns the constant value stored in v as an interface{}.
@@ -76,7 +80,7 @@ func (i *invoker) execute(req rpcData) rpcData {
 	// 	resArgs = resArgs[:len(out)-1]
 	// 	err = e
 	// }
-	return rpcData{Args: resArgs}
+	return rpcData{Result: resArgs[0]} // fix this later
 }
 
 func (i *invoker) returnError(err error) []byte {

@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -25,8 +26,18 @@ func (p *proxy) Call(result interface{}, function string, args ...interface{}) e
 	response := reqResponse.(rpcData)
 
 	fmt.Println("Client proxy response:", response)
+	if response.Err != nil {
+		return response.Err
+	}
 
-	// Usar decode para transformar o Response.Result na mesma interface do result
+	b, err := json.Marshal(response.Result)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &result)
+	if err != nil {
+		return err
+	}
 
-	return response.Err
+	return nil
 }

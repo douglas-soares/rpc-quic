@@ -4,5 +4,6 @@ package rpc
 type rpcData struct {
 	Function string
 	Args     []interface{}
+	Result   interface{}
 	Err      error
 }
