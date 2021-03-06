@@ -1,11 +1,10 @@
-package client
+package rpc
 
 import (
 	"context"
 	"crypto/tls"
 	"fmt"
 
-	"github.com/douglas-soares/rpc-quick/src/transport"
 	quic "github.com/lucas-clemente/quic-go"
 )
 
@@ -35,10 +34,10 @@ func (h clientRequestHandler) send(location string, msg []byte) ([]byte, error) 
 		fmt.Println(2, "client:", err)
 	}
 
-	err = transport.Send(stream, msg)
+	err = send(stream, msg)
 	if err != nil {
 		fmt.Println(3, "client:", err)
 	}
 
-	return transport.Read(stream)
+	return read(stream)
 }

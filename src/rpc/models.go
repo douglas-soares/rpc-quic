@@ -1,7 +1,7 @@
-package models
+package rpc
 
 // Request contains information about the client request
-type Request struct {
+type rpcData struct {
 	Function string
 	Args     []interface{}
 	Err      error

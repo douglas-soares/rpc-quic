@@ -1,14 +1,12 @@
-package marshaller
+package rpc
 
 import (
 	"bytes"
 	"encoding/gob"
-
-	"github.com/douglas-soares/rpc-quick/src/models"
 )
 
 // Marshall be sent over the network.
-func Marshall(data models.Request) ([]byte, error) {
+func marshall(data rpcData) ([]byte, error) {
 	var buf bytes.Buffer
 	encoder := gob.NewEncoder(&buf)
 	if err := encoder.Encode(data); err != nil {
@@ -18,12 +16,12 @@ func Marshall(data models.Request) ([]byte, error) {
 }
 
 // Unmarshall the binary data into the Go struct
-func Unmarshall(b []byte) (models.Request, error) {
+func unmarshall(b []byte) (rpcData, error) {
 	buf := bytes.NewBuffer(b)
-	var req models.Request
+	var data rpcData
 	decoder := gob.NewDecoder(buf)
-	if err := decoder.Decode(&req); err != nil {
-		return models.Request{}, err
+	if err := decoder.Decode(&data); err != nil {
+		return rpcData{}, err
 	}
-	return req, nil
+	return data, nil
 }

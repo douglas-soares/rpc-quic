@@ -1,9 +1,4 @@
-package client
-
-import (
-	"github.com/douglas-soares/rpc-quick/src/marshaller"
-	"github.com/douglas-soares/rpc-quick/src/models"
-)
+package rpc
 
 // Requestor contains
 type Requestor interface {
@@ -22,12 +17,12 @@ func NewRequestor(h requestHandler) Requestor {
 }
 
 func (r *requestor) Invoke(location, function string, args []interface{}) interface{} {
-	request := models.Request{
+	request := rpcData{
 		Function: function,
 		Args:     args,
 	}
 
-	msgMarshalled, err := marshaller.Marshall(request)
+	msgMarshalled, err := marshall(request)
 	if err != nil {
 		return r.returnError(err)
 	}
@@ -37,7 +32,7 @@ func (r *requestor) Invoke(location, function string, args []interface{}) interf
 		return r.returnError(err)
 	}
 
-	response, err := marshaller.Unmarshall(reqResponse)
+	response, err := unmarshall(reqResponse)
 	if err != nil {
 		return r.returnError(err)
 	}
@@ -45,8 +40,8 @@ func (r *requestor) Invoke(location, function string, args []interface{}) interf
 	return response
 }
 
-func (r *requestor) returnError(err error) models.Request {
-	return models.Request{
+func (r *requestor) returnError(err error) rpcData {
+	return rpcData{
 		Err: err,
 	}
 }

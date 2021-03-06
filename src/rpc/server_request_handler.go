@@ -1,4 +1,4 @@
-package server
+package rpc
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/douglas-soares/rpc-quick/src/transport"
 	quic "github.com/lucas-clemente/quic-go"
 )
 
@@ -45,7 +44,7 @@ func (h serverRequestHandler) ServeAndListen(addr string) error {
 				fmt.Println(3, "server:", err)
 			}
 			for {
-				data, err := transport.Read(stream)
+				data, err := read(stream)
 				if err != nil {
 					fmt.Println(" error reading mclient msg", err)
 					stream.Close() // deverimos fechar?
@@ -53,8 +52,12 @@ func (h serverRequestHandler) ServeAndListen(addr string) error {
 				}
 
 				response := h.invoker.invoke(data)
-				transport.Send(stream, response)
-				stream.Close()
+				err = send(stream, response)
+				if err != nil {
+					fmt.Println(" error sending to client", err)
+					stream.Close() // deverimos fechar?
+					return
+				}
 			}
 		}()
 	}

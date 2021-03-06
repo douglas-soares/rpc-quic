@@ -1,4 +1,4 @@
-package transport
+package rpc
 
 import (
 	"encoding/binary"
@@ -7,7 +7,7 @@ import (
 	quic "github.com/lucas-clemente/quic-go"
 )
 
-func Send(conn quic.Stream, data []byte) error {
+func send(conn quic.Stream, data []byte) error {
 	// we will need 4 more byte then the len of data
 	// as TLV header is 4bytes and in this header
 	// we will encode how much byte of data
@@ -23,7 +23,7 @@ func Send(conn quic.Stream, data []byte) error {
 }
 
 // Read TLV sent over the wire
-func Read(conn quic.Stream) ([]byte, error) {
+func read(conn quic.Stream) ([]byte, error) {
 	header := make([]byte, 4)
 	_, err := io.ReadFull(conn, header)
 	if err != nil {

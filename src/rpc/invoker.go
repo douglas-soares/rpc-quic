@@ -1,12 +1,9 @@
-package server
+package rpc
 
 import (
 	"fmt"
 	"log"
 	"reflect"
-
-	"github.com/douglas-soares/rpc-quick/src/marshaller"
-	"github.com/douglas-soares/rpc-quick/src/models"
 )
 
 type Invoker interface {
@@ -37,7 +34,7 @@ func (i *invoker) Register(fnName string, fFunc interface{}) {
 
 func (i *invoker) invoke(data []byte) []byte {
 	fmt.Println(" invoker")
-	req, err := marshaller.Unmarshall(data)
+	req, err := unmarshall(data)
 	fmt.Println(err)
 	if err != nil {
 		return i.returnError(err)
@@ -45,7 +42,7 @@ func (i *invoker) invoke(data []byte) []byte {
 
 	response := i.execute(req)
 
-	marshalledResponse, err := marshaller.Marshall(response)
+	marshalledResponse, err := marshall(response)
 	if err != nil {
 		return i.returnError(err)
 	}
@@ -53,11 +50,11 @@ func (i *invoker) invoke(data []byte) []byte {
 	return marshalledResponse
 }
 
-func (i *invoker) execute(req models.Request) models.Request {
+func (i *invoker) execute(req rpcData) rpcData {
 	f, ok := i.funcs[req.Function]
 	if !ok {
 		err := fmt.Errorf("func %s not registered", req.Function)
-		return models.Request{Args: nil, Err: err}
+		return rpcData{Args: nil, Err: err}
 	}
 
 	log.Printf("func %s is called\n", req.Function)
@@ -83,13 +80,13 @@ func (i *invoker) execute(req models.Request) models.Request {
 		resArgs = resArgs[:len(out)-1] // ta correto isso?
 		err = e
 	}
-	return models.Request{Args: resArgs, Err: err}
+	return rpcData{Args: resArgs, Err: err}
 }
 
 func (i *invoker) returnError(err error) []byte {
-	resp := models.Request{
+	resp := rpcData{
 		Err: err,
 	}
-	r, _ := marshaller.Marshall(resp) // retornar erro para cancelar conexao no servidor
+	r, _ := marshall(resp) // retornar erro para cancelar conexao no servidor
 	return r
 }

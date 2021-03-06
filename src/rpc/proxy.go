@@ -1,9 +1,7 @@
-package client
+package rpc
 
 import (
 	"fmt"
-
-	"github.com/douglas-soares/rpc-quick/src/models"
 )
 
 // Proxy contains the method for the client proxy
@@ -32,7 +30,7 @@ func (p *proxy) Call(result interface{}, function string, args ...interface{}) e
 	//var location string // resultado do lookup
 	reqResponse := p.Invoke("", function, args)
 
-	response := reqResponse.(models.Request)
+	response := reqResponse.(rpcData)
 
 	fmt.Println(response)
 
