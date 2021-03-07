@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type proxy struct {
@@ -12,7 +11,7 @@ type proxy struct {
 
 // newClientProxy creates a client proxy that translates the local invocation
 // into parameters for the REQUESTOR, triggers the invocation and returns the result
-func newClientProxy(serverAddr string, crh clientRequestHandler) *proxy {
+func newClientProxy(serverAddr string, crh *clientRequestHandler) *proxy {
 	r := newRequestor(crh)
 
 	return &proxy{
@@ -25,7 +24,7 @@ func (p *proxy) Call(result interface{}, function string, args ...interface{}) e
 	reqResponse := p.Invoke(p.serverAddr, function, args)
 	response := reqResponse.(rpcData)
 
-	fmt.Println("Client proxy response:", response)
+	//fmt.Println("Client proxy response:", response)
 	if response.Err != nil {
 		return response.Err
 	}

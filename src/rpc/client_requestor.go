@@ -1,11 +1,11 @@
 package rpc
 
 type requestor struct {
-	clientRequestHandler
+	*clientRequestHandler
 }
 
 // NewRequestor creates a new requestor,
-func newRequestor(crh clientRequestHandler) requestor {
+func newRequestor(crh *clientRequestHandler) requestor {
 	return requestor{
 		clientRequestHandler: crh,
 	}

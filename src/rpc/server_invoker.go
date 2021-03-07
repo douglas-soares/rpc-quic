@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 )
 
@@ -17,11 +16,9 @@ func newInvoker() *invoker {
 
 // Register the name of the function and its entries
 func (i *invoker) Register(function string, fFunc interface{}) {
-
 	if _, ok := i.funcs[function]; ok {
 		return
 	}
-	// colocar thread aqui
 	i.funcs[function] = reflect.ValueOf(fFunc)
 	fmt.Println("fucntion", function, "registred")
 }
@@ -53,7 +50,7 @@ func (i *invoker) execute(req rpcData) rpcData {
 		return rpcData{Args: nil, Err: err}
 	}
 
-	log.Printf("func %s is called\n", req.Function)
+	//log.Printf("func %s is called\n", req.Function)
 	// unpackage request arguments
 	inArgs := make([]reflect.Value, len(req.Args))
 	for i := range req.Args {

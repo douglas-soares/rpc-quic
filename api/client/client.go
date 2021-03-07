@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/gob"
 	"fmt"
+	"time"
 
 	common "github.com/douglas-soares/rpc-quick/api"
 	naming "github.com/douglas-soares/rpc-quick/src/naming_service"
@@ -28,13 +29,17 @@ func main() {
 	}
 
 	proxy := rpc.NewClient(s.Addr, tlsConf)
+	start := time.Now()
+	for i := 0; i < 5000; i++ {
+		var resp common.Data
+		err = proxy.Call(&resp, "sum", common.Data{Data: 1.0})
+		if err != nil {
+			fmt.Println("cliente", err)
+		}
 
-	var resp common.Data
-	err = proxy.Call(&resp, "sum", common.Data{Data: 1.0})
-	if err != nil {
-		fmt.Println("cliente", err)
+		fmt.Println(i, "Client result:", resp.Data)
+
 	}
-
-	fmt.Println("Client result:", resp.Data)
-
+	elapsed := time.Since(start)
+	fmt.Println(elapsed.Milliseconds())
 }

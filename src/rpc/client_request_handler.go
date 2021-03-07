@@ -10,29 +10,40 @@ import (
 
 type clientRequestHandler struct {
 	tlsConfig *tls.Config
+	conn      quic.Stream
 }
 
-func newClientRequestHandler(tlsConfig *tls.Config) clientRequestHandler {
-	return clientRequestHandler{
+func newClientRequestHandler(tlsConfig *tls.Config) *clientRequestHandler {
+	return &clientRequestHandler{
 		tlsConfig: tlsConfig,
 	}
 }
 
 func (h *clientRequestHandler) send(addr string, msg []byte) ([]byte, error) {
-	session, err := quic.DialAddr(addr, h.tlsConfig, nil)
-	if err != nil {
-		fmt.Println(1, "client:", err)
+	var transport transportHelper
+	if h.conn == nil {
+
+		session, err := quic.DialAddr(addr, h.tlsConfig, nil)
+		if err != nil {
+			fmt.Println(1, "client:", err)
+		}
+
+		stream, err := session.OpenStreamSync(context.Background())
+		if err != nil {
+			fmt.Println(2, "client:", err)
+		}
+
+		h.conn = stream
 	}
 
-	stream, err := session.OpenStreamSync(context.Background())
-	if err != nil {
-		fmt.Println(2, "client:", err)
-	}
-	transport := newTransportHelper(stream)
+	transport = newTransportHelper(h.conn)
 
-	err = transport.send(msg)
+	err := transport.send(msg)
 	if err != nil {
-		fmt.Println(3, "client:", err)
+		if err.Error() == "NO_ERROR: No recent network activity" {
+			h.conn = nil
+			return h.send(addr, msg)
+		}
 	}
 
 	return transport.read()
