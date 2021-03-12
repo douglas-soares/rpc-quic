@@ -23,18 +23,25 @@ func main() {
 	}
 	n := naming.NewNamingService("localhost:4040")
 	n.StartClient(tlsConfN)
-	err := n.Bind("sum", "localhost:4242")
+	err := n.Bind("Servidor", "localhost:4242")
 	fmt.Println("server testing naming:", err)
 
 	server := rpc.NewServer()
-	server.Register("sum", sum)
+	server.Register("fibonacci", fibonacci)
 
 	server.ListenAndServe("localhost:4242", GenerateTLSConfig())
 
 }
 
-func sum(x common.Data) common.Data {
-	return common.Data{Data: x.Data * 2}
+func fibonacci(x common.Data) common.Data {
+	return common.Data{Data: calculateFibonacci(x.Data)}
+}
+
+func calculateFibonacci(n int) int {
+	if n <= 1 {
+		return n
+	}
+	return calculateFibonacci(n-1) + calculateFibonacci(n-2)
 }
 
 func GenerateTLSConfig() *tls.Config {

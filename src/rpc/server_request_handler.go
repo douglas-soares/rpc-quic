@@ -41,7 +41,7 @@ func (h serverRequestHandler) ListenAndServe(addr string, tlsConfig *tls.Config)
 			for {
 				data, err := transport.read()
 				if err != nil {
-					fmt.Println(" error reading mclient msg", err)
+					fmt.Println("error reading client msg", err)
 					stream.Close() // deverimos fechar?
 					return
 				}
@@ -49,8 +49,7 @@ func (h serverRequestHandler) ListenAndServe(addr string, tlsConfig *tls.Config)
 				response := h.invoker.invoke(data)
 				err = transport.send(response)
 				if err != nil {
-					fmt.Println(" error sending to client", err)
-					stream.Close() // deverimos fechar?
+					fmt.Println("error sending to client", err)
 					return
 				}
 			}

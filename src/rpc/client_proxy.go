@@ -1,7 +1,8 @@
 package rpc
 
 import (
-	"encoding/json"
+	"fmt"
+	"reflect"
 )
 
 type proxy struct {
@@ -29,14 +30,33 @@ func (p *proxy) Call(result interface{}, function string, args ...interface{}) e
 		return response.Err
 	}
 
-	b, err := json.Marshal(response.Result)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(b, &result)
-	if err != nil {
-		return err
+	// b, err := json.Marshal(response.Result)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = json.Unmarshal(b, &result)
+	// if err != nil {
+	// 	return err
+	// }
+
+	if result == nil {
+		return nil
 	}
 
+	if reflect.TypeOf(result).Kind() != reflect.Ptr {
+		return fmt.Errorf("result must be a pointer of interface to receive the rpc result value")
+	}
+
+	resultType := reflect.Indirect(reflect.ValueOf(result)).Type()
+	responseType := reflect.TypeOf(response.Result)
+
+	if resultType != responseType {
+		return fmt.Errorf(fmt.Sprintf("different types: type of result is %s and the response is %s", resultType.Name(), responseType.Name()))
+	}
+
+	value := reflect.ValueOf(response.Result)
+	reflect.Indirect(reflect.ValueOf(result)).Set(value)
+
 	return nil
+
 }
