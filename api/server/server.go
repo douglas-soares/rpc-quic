@@ -5,18 +5,15 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/gob"
 	"encoding/pem"
 	"fmt"
 	"math/big"
 
-	common "github.com/douglas-soares/rpc-quick/api"
 	naming "github.com/douglas-soares/rpc-quick/src/naming_service"
 	"github.com/douglas-soares/rpc-quick/src/rpc"
 )
 
 func main() {
-	gob.Register(common.Data{})
 	tlsConfN := &tls.Config{
 		InsecureSkipVerify: true,
 		NextProtos:         []string{"naming"},
@@ -30,18 +27,13 @@ func main() {
 	server.Register("fibonacci", fibonacci)
 
 	server.ListenAndServe("localhost:4242", GenerateTLSConfig())
-
 }
 
-func fibonacci(x common.Data) common.Data {
-	return common.Data{Data: calculateFibonacci(x.Data)}
-}
-
-func calculateFibonacci(n int) int {
+func fibonacci(n int) int {
 	if n <= 1 {
 		return n
 	}
-	return calculateFibonacci(n-1) + calculateFibonacci(n-2)
+	return fibonacci(n-1) + fibonacci(n-2)
 }
 
 func GenerateTLSConfig() *tls.Config {

@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"time"
 
-	common "github.com/douglas-soares/rpc-quick/api"
 	naming "github.com/douglas-soares/rpc-quick/src/naming_service"
 	"github.com/douglas-soares/rpc-quick/src/rpc"
 )
 
 func main() {
 	gob.Register(naming.NamingResult{})
-	gob.Register(common.Data{})
+
 	tlsConfN := &tls.Config{
 		InsecureSkipVerify: true,
 		NextProtos:         []string{"naming"},
@@ -31,13 +30,13 @@ func main() {
 	proxy := rpc.NewClient(s.Addr, tlsConf)
 	start := time.Now()
 	for i := 0; i < 1; i++ {
-		var resp common.Data
-		err = proxy.Call(&resp, "fibonacci", common.Data{Data: 10})
+		var resp int
+		err = proxy.Call(&resp, "fibonacci", 10)
 		if err != nil {
-			fmt.Println("cliente", err)
+			fmt.Println("client error:", err)
 		}
 
-		fmt.Println(i, "Client result:", resp.Data)
+		fmt.Println(i, "Client result:", resp)
 
 	}
 	elapsed := time.Since(start)
