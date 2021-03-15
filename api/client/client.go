@@ -27,11 +27,11 @@ func main() {
 		NextProtos:         []string{"quic-echo-example"},
 	}
 
-	proxy := rpc.NewClient(s.Addr, tlsConf)
+	proxy := rpc.NewClient(s.Addr, tlsConf, nil)
 	start := time.Now()
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 1000; i++ {
 		var resp int
-		err = proxy.Call(&resp, "fibonacci", 10)
+		err = proxy.Call(&resp, "fibonacci", 20)
 		if err != nil {
 			fmt.Println("client error:", err)
 		}

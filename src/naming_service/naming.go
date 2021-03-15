@@ -33,11 +33,11 @@ func NewNamingService(addr string) *naming {
 func (n *naming) ListenAndServe(tlsConfig *tls.Config) error {
 	n.server.Register("Bind", n.bind)
 	n.server.Register("LookUp", n.lookUp)
-	return n.server.ListenAndServe(n.addr, tlsConfig)
+	return n.server.ListenAndServe(n.addr, tlsConfig, nil)
 }
 
 func (n *naming) StartClient(tlsConfig *tls.Config) {
-	n.client = rpc.NewClient(n.addr, tlsConfig)
+	n.client = rpc.NewClient(n.addr, tlsConfig, nil)
 }
 
 func (n *naming) Bind(serverName string, serverAddr string) error {

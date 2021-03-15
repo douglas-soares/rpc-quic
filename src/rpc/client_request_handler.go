@@ -9,21 +9,22 @@ import (
 )
 
 type clientRequestHandler struct {
-	tlsConfig *tls.Config
-	conn      quic.Stream
+	quicConfig *quic.Config
+	tlsConfig  *tls.Config
+	conn       quic.Stream
 }
 
-func newClientRequestHandler(tlsConfig *tls.Config) *clientRequestHandler {
+func newClientRequestHandler(tlsConfig *tls.Config, quicConfig *quic.Config) *clientRequestHandler {
 	return &clientRequestHandler{
-		tlsConfig: tlsConfig,
+		quicConfig: quicConfig,
+		tlsConfig:  tlsConfig,
 	}
 }
 
 func (h *clientRequestHandler) send(addr string, msg []byte) ([]byte, error) {
 	var transport transportHelper
 	if h.conn == nil {
-
-		session, err := quic.DialAddr(addr, h.tlsConfig, nil)
+		session, err := quic.DialAddr(addr, h.tlsConfig, h.quicConfig)
 		if err != nil {
 			fmt.Println(1, "client:", err)
 		}

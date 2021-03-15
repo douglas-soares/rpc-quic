@@ -26,7 +26,7 @@ func main() {
 	server := rpc.NewServer()
 	server.Register("fibonacci", fibonacci)
 
-	server.ListenAndServe("localhost:4242", GenerateTLSConfig())
+	server.ListenAndServe("localhost:4242", GenerateTLSConfig(), nil)
 }
 
 func fibonacci(n int) int {
