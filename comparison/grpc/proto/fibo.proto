@@ -1,0 +1,16 @@
+syntax = "proto3";
+option go_package = "github.com/douglas-soares/rpc-quick/comparison/grpc/proto/proto";
+
+package proto;
+
+service FiboService {
+  rpc Fibonacci(FiboRequest) returns (FiboResponse) {}
+}
+
+message FiboRequest {
+  int64 value = 1;
+}
+
+message FiboResponse {
+  int64 result = 1;
+}

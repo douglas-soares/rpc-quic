@@ -9,7 +9,7 @@ import (
 func main() {
 	client, _ := rpc.Dial("tcp", "localhost:6566")
 	start := time.Now()
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1000; i++ {
 		var resp int
 		err := client.Call("Servidor.Fibonacci", 20, &resp)
 		if err != nil {
