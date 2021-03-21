@@ -51,5 +51,7 @@ func (h *clientRequestHandler) send(addr string, msg []byte) ([]byte, error) {
 }
 
 func (h *clientRequestHandler) close() error {
-	return h.conn.Close()
+	err := h.conn.Close()
+	h.conn = nil
+	return err
 }
