@@ -49,3 +49,7 @@ func (h *clientRequestHandler) send(addr string, msg []byte) ([]byte, error) {
 
 	return transport.read()
 }
+
+func (h *clientRequestHandler) close() error {
+	return h.conn.Close()
+}

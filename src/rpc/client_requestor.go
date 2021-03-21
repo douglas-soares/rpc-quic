@@ -1,13 +1,13 @@
 package rpc
 
 type requestor struct {
-	*clientRequestHandler
+	requestHandler *clientRequestHandler
 }
 
 // NewRequestor creates a new requestor,
 func newRequestor(crh *clientRequestHandler) requestor {
 	return requestor{
-		clientRequestHandler: crh,
+		requestHandler: crh,
 	}
 }
 
@@ -22,7 +22,7 @@ func (r *requestor) Invoke(location, function string, args []interface{}) interf
 		return r.returnError(err)
 	}
 
-	reqResponse, err := r.send(location, msgMarshalled)
+	reqResponse, err := r.requestHandler.send(location, msgMarshalled)
 	if err != nil {
 		return r.returnError(err)
 	}
@@ -33,6 +33,10 @@ func (r *requestor) Invoke(location, function string, args []interface{}) interf
 	}
 
 	return response
+}
+
+func (r *requestor) Close() error {
+	return r.requestHandler.close()
 }
 
 func (r *requestor) returnError(err error) rpcData {

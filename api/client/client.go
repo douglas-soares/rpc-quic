@@ -51,7 +51,6 @@ func main() {
 		}
 
 		fmt.Println(i, "Client result:", resp)
-
 	}
 	elapsed := time.Since(start)
 	fmt.Println(elapsed.Milliseconds())

@@ -25,19 +25,9 @@ func (p *proxy) Call(result interface{}, function string, args ...interface{}) e
 	reqResponse := p.Invoke(p.serverAddr, function, args)
 	response := reqResponse.(rpcData)
 
-	//fmt.Println("Client proxy response:", response)
 	if response.Err != nil {
 		return response.Err
 	}
-
-	// b, err := json.Marshal(response.Result)
-	// if err != nil {
-	// 	return err
-	// }
-	// err = json.Unmarshal(b, &result)
-	// if err != nil {
-	// 	return err
-	// }
 
 	if result == nil {
 		return nil

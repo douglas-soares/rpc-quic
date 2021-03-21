@@ -9,6 +9,7 @@ import (
 // Client con stains
 type Client interface {
 	Call(result interface{}, function string, args ...interface{}) error
+	Close() error
 }
 
 // NewClient creates
