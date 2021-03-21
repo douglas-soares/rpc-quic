@@ -2,11 +2,8 @@ package main
 
 import (
 	"crypto/tls"
-	"crypto/x509"
 	"encoding/gob"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"time"
 
 	naming "github.com/douglas-soares/rpc-quick/src/naming_service"
@@ -24,34 +21,31 @@ func main() {
 	n.StartClient(tlsConfN)
 	s, err := n.LookUp("Servidor")
 	fmt.Println(" testing naming:", s, err)
-	cert, err := tls.LoadX509KeyPair("../../cert.pem", "../../key.pem")
-	if err != nil {
-		log.Fatal(err)
-	}
-	caCert, err := ioutil.ReadFile("../../cert.pem")
-	if err != nil {
-		log.Fatal(err)
-	}
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
 
 	tlsConf := &tls.Config{
-		RootCAs:      caCertPool,
-		Certificates: []tls.Certificate{cert},
-		NextProtos:   []string{"quic-echo-example"},
+		InsecureSkipVerify: true,
+		NextProtos:         []string{"quic-echo-example"},
 	}
 
-	proxy := rpc.NewClient(s.Addr, tlsConf, nil)
+	client := rpc.NewClient(s.Addr, tlsConf, nil)
 	start := time.Now()
-	for i := 0; i < 5000; i++ {
+	total := float64(0)
+	loop := 10000
+	for i := 0; i < loop; i++ {
+		t0 := time.Now()
+
 		var resp int
-		err = proxy.Call(&resp, "fibonacci", 20)
+		err = client.Call(&resp, "fibonacci", 1)
 		if err != nil {
 			fmt.Println("client error:", err)
 		}
-
+		t1 := time.Since(t0)
+		total = total + float64(t1.Milliseconds())
 		fmt.Println(i, "Client result:", resp)
+		client.Close()
 	}
 	elapsed := time.Since(start)
-	fmt.Println(elapsed.Milliseconds())
+	fmt.Println("Total:", elapsed.Milliseconds())
+	fmt.Println("Mean", total/float64(loop))
+
 }
