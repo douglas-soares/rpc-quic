@@ -11,6 +11,7 @@ import (
 
 	naming "github.com/douglas-soares/rpc-quick/src/naming_service"
 	"github.com/douglas-soares/rpc-quick/src/rpc"
+	quic "github.com/lucas-clemente/quic-go"
 )
 
 func main() {
@@ -26,7 +27,8 @@ func main() {
 	server := rpc.NewServer()
 	server.Register("fibonacci", fibonacci)
 
-	server.ListenAndServe("localhost:4242", GenerateTLSConfig(), nil)
+	quicConfig := &quic.Config{}
+	server.ListenAndServe("localhost:4242", GenerateTLSConfig(), quicConfig)
 }
 
 func fibonacci(n int) int {
@@ -56,5 +58,6 @@ func GenerateTLSConfig() *tls.Config {
 	return &tls.Config{
 		Certificates: []tls.Certificate{tlsCert},
 		NextProtos:   []string{"quic-echo-example"},
+		ServerName:   "server",
 	}
 }

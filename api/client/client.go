@@ -8,6 +8,7 @@ import (
 
 	naming "github.com/douglas-soares/rpc-quick/src/naming_service"
 	"github.com/douglas-soares/rpc-quick/src/rpc"
+	"github.com/lucas-clemente/quic-go"
 )
 
 func main() {
@@ -27,7 +28,10 @@ func main() {
 		NextProtos:         []string{"quic-echo-example"},
 	}
 
-	client := rpc.NewClient(s.Addr, tlsConf, nil)
+	tokenStore := quic.NewLRUTokenStore(1, 1)
+	quicConfig := &quic.Config{TokenStore: tokenStore, KeepAlive: true}
+
+	client := rpc.NewClient(s.Addr, tlsConf, quicConfig)
 	start := time.Now()
 	total := float64(0)
 	loop := 10000
@@ -35,14 +39,14 @@ func main() {
 		t0 := time.Now()
 
 		var resp int
-		err = client.Call(&resp, "fibonacci", 1)
+		err = client.Call(&resp, "fibonacci", 20)
 		if err != nil {
 			fmt.Println("client error:", err)
 		}
+
 		t1 := time.Since(t0)
 		total = total + float64(t1.Milliseconds())
 		fmt.Println(i, "Client result:", resp)
-		client.Close()
 	}
 	elapsed := time.Since(start)
 	fmt.Println("Total:", elapsed.Milliseconds())
