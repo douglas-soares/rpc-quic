@@ -1,7 +1,6 @@
 package rpc
 
 import (
-	"context"
 	"crypto/tls"
 	"fmt"
 
@@ -24,12 +23,12 @@ func newClientRequestHandler(tlsConfig *tls.Config, quicConfig *quic.Config) *cl
 func (h *clientRequestHandler) send(addr string, msg []byte) ([]byte, error) {
 	var transport transportHelper
 	if h.conn == nil {
-		session, err := quic.DialAddr(addr, h.tlsConfig, h.quicConfig)
+		session, err := quic.DialAddrEarly(addr, h.tlsConfig, h.quicConfig)
 		if err != nil {
 			fmt.Println(1, "client:", err)
 		}
-
-		stream, err := session.OpenStreamSync(context.Background())
+		//fmt.Println(session.ConnectionState().Used0RTT)
+		stream, err := session.OpenStream()
 		if err != nil {
 			fmt.Println(2, "client:", err)
 		}

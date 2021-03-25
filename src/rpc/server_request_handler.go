@@ -18,7 +18,7 @@ func newServerRequestHandler(invoker *invoker) serverRequestHandler {
 }
 
 func (h serverRequestHandler) ListenAndServe(addr string, tlsConfig *tls.Config, quicConfig *quic.Config) error {
-	listener, err := quic.ListenAddr(addr, tlsConfig, quicConfig)
+	listener, err := quic.ListenAddrEarly(addr, tlsConfig, quicConfig)
 	if err != nil {
 		return err
 	}
