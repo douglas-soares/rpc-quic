@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net"
+	"net/http"
 	"net/rpc"
 	"sync"
 )
@@ -23,11 +25,17 @@ func (s server) Fibonacci(n int, result *int) error {
 
 func Server() {
 
-	server2 := rpc.NewServer()
-	server2.RegisterName("Servidor", server{})
+	//server2 := rpc.NewServer()
+
+	//server2.RegisterName("Servidor", server{})
+	//l, _ := tls.Listen("tcp", "localhost:6566", GenerateTLSConfig())
 	l, _ := net.Listen("tcp", "localhost:6566")
 	fmt.Println("Iniciando conexão...")
-	server2.Accept(l)
+	// server2.Accept(l)
+
+	rpc.RegisterName("Servidor", server{})
+	rpc.HandleHTTP()
+	http.Serve(l, nil)
 }
 
 func main() {
@@ -35,4 +43,15 @@ func main() {
 	waitGroup.Add(1)
 	go Server()
 	waitGroup.Wait()
+}
+
+func GenerateTLSConfig() *tls.Config {
+	cert, err := tls.LoadX509KeyPair("../../../cert.pem", "../../../key.pem")
+	if err != nil {
+		panic(err)
+	}
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
 }

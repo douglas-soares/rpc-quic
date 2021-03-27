@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/tls"
-	"net"
 
 	"github.com/douglas-soares/rpc-quick/src/rpc"
 	quic "github.com/lucas-clemente/quic-go"
@@ -21,7 +20,7 @@ func main() {
 	server := rpc.NewServer()
 	server.Register("fibonacci", fibonacci)
 
-	quicConfig := &quic.Config{AcceptToken: func(_ net.Addr, _ *quic.Token) bool { return true }}
+	quicConfig := &quic.Config{}
 	server.ListenAndServe("localhost:8080", GenerateTLSConfig(), quicConfig)
 }
 
@@ -40,6 +39,5 @@ func GenerateTLSConfig() *tls.Config {
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		NextProtos:   []string{"quic-echo-example"},
-		ServerName:   "localhost",
 	}
 }

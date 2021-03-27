@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
 
 	"github.com/douglas-soares/rpc-quick/comparison/grpc/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type Server struct{}
@@ -26,7 +28,7 @@ func main() {
 
 	s := Server{}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.Creds(credentials.NewTLS(GenerateTLSConfig())))
 	proto.RegisterFiboServiceServer(grpcServer, &s)
 
 	fmt.Println("listening 8082")
@@ -41,4 +43,16 @@ func fibonacci(n int64) int64 {
 		return n
 	}
 	return fibonacci(n-1) + fibonacci(n-2)
+}
+
+func GenerateTLSConfig() *tls.Config {
+	cert, err := tls.LoadX509KeyPair("../../../cert.pem", "../../../key.pem")
+	if err != nil {
+		panic(err)
+	}
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		NextProtos:   []string{"quic-echo-example"},
+	}
 }

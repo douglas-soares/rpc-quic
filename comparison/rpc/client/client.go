@@ -7,10 +7,16 @@ import (
 )
 
 func main() {
-	client, _ := rpc.Dial("tcp", "localhost:6566")
+
+	// tlsConf := &tls.Config{
+	// 	InsecureSkipVerify: true,
+	// }
+	//conn, _ := tls.Dial("tcp", "localhost:6566", tlsConf)
+	client, _ := rpc.DialHTTP("tcp", "localhost:6566")
+	//client, _ := rpc.Dial("tcp", "localhost:6566")
 	start := time.Now()
 	total := float64(0)
-	loop := 1
+	loop := 10000
 
 	for i := 0; i < loop; i++ {
 		t0 := time.Now()
@@ -25,7 +31,6 @@ func main() {
 
 		t1 := time.Since(t0)
 		total = total + float64(t1.Milliseconds())
-		client.Close()
 	}
 	elapsed := time.Since(start)
 	fmt.Println("Total:", elapsed.Milliseconds())

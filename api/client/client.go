@@ -31,19 +31,19 @@ func main() {
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 	tlsConf := &tls.Config{
-		RootCAs:            caCertPool,
-		NextProtos:         []string{"quic-echo-example"},
-		ClientSessionCache: tls.NewLRUClientSessionCache(100),
-		ServerName:         "localhost",
+		InsecureSkipVerify: true,
+		//RootCAs:            caCertPool,
+		NextProtos: []string{"quic-echo-example"},
+		//ClientSessionCache: tls.NewLRUClientSessionCache(100),
 	}
 
-	//tokenStore := quic.NewLRUTokenStore(10, 10)
+	//	tokenStore := quic.NewLRUTokenStore(10, 10)
 	quicConfig := &quic.Config{}
 
 	client := rpc.NewClient("localhost:8080", tlsConf, quicConfig)
 	start := time.Now()
 	total := float64(0)
-	loop := 5000
+	loop := 1000
 	for i := 0; i < loop; i++ {
 		t0 := time.Now()
 
@@ -56,7 +56,6 @@ func main() {
 		t1 := time.Since(t0)
 		total = total + float64(t1.Milliseconds())
 		fmt.Println(i, "Client result:", resp)
-		client.Close()
 	}
 	elapsed := time.Since(start)
 	fmt.Println("Total:", elapsed.Milliseconds())
