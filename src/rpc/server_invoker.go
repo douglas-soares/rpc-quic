@@ -1,9 +1,10 @@
 package rpc
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
+
+	msgpack "github.com/vmihailenco/msgpack/v5"
 )
 
 type invoker struct {
@@ -12,8 +13,8 @@ type invoker struct {
 }
 
 type serverRequest struct {
-	Function string           `json:"method"`
-	Args     *json.RawMessage `json:"params"`
+	Function string              `json:"method"`
+	Args     *msgpack.RawMessage `json:"params"`
 }
 
 type serverResponse struct {

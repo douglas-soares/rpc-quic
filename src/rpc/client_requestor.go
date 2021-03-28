@@ -1,8 +1,6 @@
 package rpc
 
-import (
-	"encoding/json"
-)
+import msgpack "github.com/vmihailenco/msgpack/v5"
 
 type requestor struct {
 	requestHandler *clientRequestHandler
@@ -14,8 +12,8 @@ type clientRequest struct {
 }
 
 type clientResponse struct {
-	Result *json.RawMessage `json:"result"`
-	Err    string           `json:"error"`
+	Result *msgpack.RawMessage `json:"result"`
+	Err    string              `json:"error"`
 }
 
 // NewRequestor creates a new requestor,

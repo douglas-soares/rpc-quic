@@ -2,19 +2,19 @@ package rpc
 
 import (
 	"bytes"
-	"encoding/json"
+
+	msgpack "github.com/vmihailenco/msgpack/v5"
 )
 
 // marshal be sent over the network.
 func marshal(v interface{}) ([]byte, error) {
-	return json.Marshal(v)
+	return msgpack.Marshal(v)
 }
 
 // Unmarshal the binary data into the Go struct
 func unmarshal(b []byte, v interface{}) error {
 	buf := bytes.NewBuffer(b)
-	decoder := json.NewDecoder(buf)
-	decoder.UseNumber()
+	decoder := msgpack.NewDecoder(buf)
 	if err := decoder.Decode(v); err != nil {
 		return err
 	}
