@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 
 	quic "github.com/lucas-clemente/quic-go"
@@ -18,6 +19,9 @@ func newTransportHelper(conn quic.Stream) transportHelper {
 }
 
 func (t transportHelper) send(data []byte) error {
+	if t.conn == nil {
+		return fmt.Errorf("transport: conn is nil")
+	}
 	// we will need 4 more byte then the len of data
 	// as TLV header is 4bytes and in this header
 	// we will encode how much byte of data
@@ -34,6 +38,9 @@ func (t transportHelper) send(data []byte) error {
 
 func (t transportHelper) read() ([]byte, error) {
 	header := make([]byte, 4)
+	if t.conn == nil {
+		return nil, fmt.Errorf("transport: conn is nil")
+	}
 	_, err := io.ReadFull(t.conn, header)
 	if err != nil {
 		return nil, err

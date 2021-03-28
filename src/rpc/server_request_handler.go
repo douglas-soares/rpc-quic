@@ -32,16 +32,16 @@ func (h serverRequestHandler) ListenAndServe(addr string, tlsConfig *tls.Config,
 		if err != nil {
 			return err
 		}
+		stream, err = sess.AcceptStream(context.Background())
+		if err != nil {
+			fmt.Println(3, "server:", err)
+			return err
+		}
 		go func() {
-			stream, err = sess.AcceptStream(context.Background())
-			if err != nil {
-				fmt.Println(3, "server:", err)
-			}
 			transport := newTransportHelper(stream)
 			for {
 				data, err := transport.read()
 				if err != nil {
-					stream.Close()
 					return
 				}
 				response := h.invoker.invoke(data)

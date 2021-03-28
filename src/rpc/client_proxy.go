@@ -30,7 +30,5 @@ func (p *proxy) Call(function string, arg interface{}, result interface{}) error
 		return nil
 	}
 
-	unmarshal(*response.Result, &result)
-
-	return nil
+	return unmarshal(*response.Result, &result)
 }
