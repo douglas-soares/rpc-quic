@@ -27,7 +27,7 @@ func (h *clientRequestHandler) send(addr string, msg []byte) ([]byte, error) {
 		if err != nil {
 			fmt.Println(1, "client:", err)
 		}
-		//fmt.Println(session.ConnectionState().Used0RTT)
+
 		stream, err := session.OpenStream()
 		if err != nil {
 			fmt.Println(2, "client:", err)

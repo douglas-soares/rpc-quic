@@ -13,8 +13,6 @@ import (
 )
 
 func main() {
-	// gob.Register(naming.NamingResult{})
-
 	// tlsConfN := &tls.Config{
 	// 	InsecureSkipVerify: true,
 	// 	NextProtos:         []string{"naming"},
@@ -33,8 +31,8 @@ func main() {
 	tlsConf := &tls.Config{
 		InsecureSkipVerify: true,
 		//RootCAs:            caCertPool,
-		NextProtos: []string{"quic-echo-example"},
-		//ClientSessionCache: tls.NewLRUClientSessionCache(100),
+		NextProtos:         []string{"quic-echo-example"},
+		ClientSessionCache: tls.NewLRUClientSessionCache(100),
 	}
 
 	//	tokenStore := quic.NewLRUTokenStore(10, 10)
@@ -43,16 +41,17 @@ func main() {
 	client := rpc.NewClient("localhost:8080", tlsConf, quicConfig)
 	start := time.Now()
 	total := float64(0)
-	loop := 1000
+	loop := 1
 	for i := 0; i < loop; i++ {
 		t0 := time.Now()
 
 		var resp int
-		err := client.Call(&resp, "fibonacci", 1)
+		err := client.Call("fibonacci", 1, &resp)
 		if err != nil {
 			fmt.Println("client error:", err)
 		}
 
+		client.Close()
 		t1 := time.Since(t0)
 		total = total + float64(t1.Milliseconds())
 		fmt.Println(i, "Client result:", resp)

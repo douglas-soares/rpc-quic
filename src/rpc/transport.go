@@ -32,7 +32,6 @@ func (t transportHelper) send(data []byte) error {
 	return nil
 }
 
-// Read TLV sent over the wire
 func (t transportHelper) read() ([]byte, error) {
 	header := make([]byte, 4)
 	_, err := io.ReadFull(t.conn, header)

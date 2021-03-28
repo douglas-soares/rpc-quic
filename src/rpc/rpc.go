@@ -8,7 +8,7 @@ import (
 
 // Client con stains
 type Client interface {
-	Call(result interface{}, function string, args ...interface{}) error
+	Call(function string, arg interface{}, result interface{}) error
 	Close() error
 }
 

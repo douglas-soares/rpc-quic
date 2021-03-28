@@ -1,7 +1,21 @@
 package rpc
 
+import (
+	"encoding/json"
+)
+
 type requestor struct {
 	requestHandler *clientRequestHandler
+}
+
+type clientRequest struct {
+	Function string      `json:"method"`
+	Args     interface{} `json:"params"`
+}
+
+type clientResponse struct {
+	Result *json.RawMessage `json:"result"`
+	Err    string           `json:"error"`
 }
 
 // NewRequestor creates a new requestor,
@@ -11,23 +25,24 @@ func newRequestor(crh *clientRequestHandler) requestor {
 	}
 }
 
-func (r *requestor) Invoke(location, function string, args []interface{}) interface{} {
-	request := rpcData{
+func (r *requestor) Invoke(location, function string, args interface{}) interface{} {
+	request := clientRequest{
 		Function: function,
 		Args:     args,
 	}
 
-	msgMarshalled, err := marshall(request)
+	msgmarshaled, err := marshal(request)
 	if err != nil {
 		return r.returnError(err)
 	}
 
-	reqResponse, err := r.requestHandler.send(location, msgMarshalled)
+	reqResponse, err := r.requestHandler.send(location, msgmarshaled)
 	if err != nil {
 		return r.returnError(err)
 	}
 
-	response, err := unmarshall(reqResponse)
+	var response clientResponse
+	err = unmarshal(reqResponse, &response)
 	if err != nil {
 		return r.returnError(err)
 	}
@@ -39,8 +54,8 @@ func (r *requestor) Close() error {
 	return r.requestHandler.close()
 }
 
-func (r *requestor) returnError(err error) rpcData {
-	return rpcData{
-		Err: err,
+func (r *requestor) returnError(err error) clientResponse {
+	return clientResponse{
+		Err: err.Error(),
 	}
 }

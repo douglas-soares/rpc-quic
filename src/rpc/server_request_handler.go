@@ -41,11 +41,9 @@ func (h serverRequestHandler) ListenAndServe(addr string, tlsConfig *tls.Config,
 			for {
 				data, err := transport.read()
 				if err != nil {
-					//fmt.Println("error reading client msg", err)
-					stream.Close() // deverimos fechar?
+					stream.Close()
 					return
 				}
-
 				response := h.invoker.invoke(data)
 				err = transport.send(response)
 				if err != nil {
@@ -56,13 +54,3 @@ func (h serverRequestHandler) ListenAndServe(addr string, tlsConfig *tls.Config,
 		}()
 	}
 }
-
-// func (h serverRequestHandler) receiveMessage(conn net.Conn, data interface{}) error {
-// 	decoder := gob.NewDecoder(conn) //arrumar isso para n precisar criar
-// 	return decoder.Decode(&data)
-// }
-
-// func (h serverRequestHandler) sendMessage(conn net.Conn, data interface{}) error {
-// 	encoder := gob.NewEncoder(conn) //arrumar isso para n precisar criar
-// 	return encoder.Encode(&data)
-// }

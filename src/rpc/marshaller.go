@@ -2,26 +2,21 @@ package rpc
 
 import (
 	"bytes"
-	"encoding/gob"
+	"encoding/json"
 )
 
-// Marshall be sent over the network.
-func marshall(data rpcData) ([]byte, error) {
-	var buf bytes.Buffer
-	encoder := gob.NewEncoder(&buf)
-	if err := encoder.Encode(data); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+// marshal be sent over the network.
+func marshal(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
 }
 
-// Unmarshall the binary data into the Go struct
-func unmarshall(b []byte) (rpcData, error) {
+// Unmarshal the binary data into the Go struct
+func unmarshal(b []byte, v interface{}) error {
 	buf := bytes.NewBuffer(b)
-	var data rpcData
-	decoder := gob.NewDecoder(buf)
-	if err := decoder.Decode(&data); err != nil {
-		return rpcData{}, err
+	decoder := json.NewDecoder(buf)
+	decoder.UseNumber()
+	if err := decoder.Decode(v); err != nil {
+		return err
 	}
-	return data, nil
+	return nil
 }

@@ -1,32 +1,74 @@
 package rpc
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 )
 
 type invoker struct {
-	funcs map[string]reflect.Value
+	funcs     map[string]reflect.Value
+	funcParam map[string]reflect.Type
+}
+
+type serverRequest struct {
+	Function string           `json:"method"`
+	Args     *json.RawMessage `json:"params"`
+}
+
+type serverResponse struct {
+	Result interface{} `json:"result"`
+	Err    string      `json:"error"`
 }
 
 func newInvoker() *invoker {
 	funcs := make(map[string]reflect.Value)
-	return &invoker{funcs: funcs}
+	funcParam := make(map[string]reflect.Type)
+	return &invoker{
+		funcs:     funcs,
+		funcParam: funcParam,
+	}
 }
 
 // Register the name of the function and its entries
-func (i *invoker) Register(function string, fFunc interface{}) {
-	if _, ok := i.funcs[function]; ok {
-		return
+func (i *invoker) Register(function string, fFunc interface{}) error {
+	if fFunc == nil {
+		return fmt.Errorf("register error: fFunc is null")
 	}
+
+	fFuncType := reflect.TypeOf(fFunc)
+	if fFuncType.Kind() != reflect.Func {
+		return fmt.Errorf("register error: fFunc must be a function")
+	}
+
+	if _, ok := i.funcs[function]; ok {
+		return nil
+	}
+
+	if fFuncType.NumIn() > 1 {
+		return fmt.Errorf("register error: function has more than 1 parameters")
+	}
+
 	i.funcs[function] = reflect.ValueOf(fFunc)
-	fmt.Println("fucntion", function, "registred")
+
+	if fFuncType.NumIn() == 1 {
+		i.funcParam[function] = fFuncType.In(0)
+	}
+
+	fmt.Println("function", function, "registred")
+
+	return nil
 }
 
-// fazer funcao de unregister
-
 func (i *invoker) invoke(data []byte) []byte {
-	req, err := unmarshall(data)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered from panic in invoke", r)
+		}
+	}()
+
+	var req serverRequest
+	err := unmarshal(data, &req)
 	if err != nil {
 		fmt.Println("invoker 1", err)
 		return i.returnError(err)
@@ -34,56 +76,66 @@ func (i *invoker) invoke(data []byte) []byte {
 
 	response := i.execute(req)
 
-	marshalledResponse, err := marshall(response)
+	marshaledResponse, err := marshal(response)
 	if err != nil {
 		fmt.Println("invoker 2", err)
 		return i.returnError(err)
 	}
 
-	return marshalledResponse
+	return marshaledResponse
 }
 
-func (i *invoker) execute(req rpcData) rpcData {
+func (i *invoker) execute(req serverRequest) serverResponse {
 	f, ok := i.funcs[req.Function]
 	if !ok {
-		err := fmt.Errorf("func %s not registered", req.Function)
-		return rpcData{Args: nil, Err: err}
+		err := fmt.Sprintf("func %s not registered", req.Function)
+		return serverResponse{Result: nil, Err: err}
 	}
 
-	//log.Printf("func %s is called\n", req.Function)
-	// unpackage request arguments
-	inArgs := make([]reflect.Value, len(req.Args))
-	for i := range req.Args {
-		inArgs[i] = reflect.ValueOf(req.Args[i])
+	paramType, funcHasParam := i.funcParam[req.Function]
+
+	var inArgs []reflect.Value
+
+	if funcHasParam {
+		if req.Args == nil {
+			err := fmt.Sprintf("func %s requires a parameter", req.Function)
+			return serverResponse{Result: nil, Err: err}
+		}
+
+		// force pointer
+		var argv reflect.Value
+		if paramType.Kind() == reflect.Ptr {
+			argv = reflect.New(paramType.Elem())
+		} else {
+			argv = reflect.New(paramType)
+		}
+
+		err := unmarshal(*req.Args, argv.Interface())
+		if err != nil {
+			return serverResponse{Result: nil, Err: err.Error()}
+		}
+
+		inArgs = append(inArgs, argv.Elem())
 	}
+
 	// invoke requested method
 	out := f.Call(inArgs)
-	// now since we have followed the function signature style where last argument will be an error
-	// so we will pack the response arguments expect error.
-
 	if len(out) == 0 {
-		return rpcData{}
+		return serverResponse{}
 	}
+
 	resArgs := make([]interface{}, len(out))
 	for i := 0; i < len(out); i++ {
-		// Interface returns the constant value stored in v as an interface{}.
 		resArgs[i] = out[i].Interface()
 	}
 
-	// // pack error argument
-	// var err error
-	// if e, ok := resArgs[len(out)-1].(error); ok {
-	// 	// convert the error into error string value
-	// 	resArgs = resArgs[:len(out)-1]
-	// 	err = e
-	// }
-	return rpcData{Result: resArgs[0]} // fix this later
+	return serverResponse{Result: resArgs[0]}
 }
 
 func (i *invoker) returnError(err error) []byte {
-	resp := rpcData{
-		Err: err,
+	resp := serverResponse{
+		Err: err.Error(),
 	}
-	r, _ := marshall(resp) // retornar erro para cancelar conexao no servidor
+	r, _ := marshal(resp)
 	return r
 }

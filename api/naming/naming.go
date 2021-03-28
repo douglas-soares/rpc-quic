@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/gob"
 	"encoding/pem"
 	"fmt"
 	"math/big"
@@ -14,7 +13,6 @@ import (
 )
 
 func main() {
-	gob.Register(naming.NamingResult{})
 	n := naming.NewNamingService("localhost:4040")
 	err := n.ListenAndServe(generateTLSConfig())
 	if err != nil {

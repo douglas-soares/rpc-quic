@@ -8,7 +8,12 @@ import (
 	"github.com/douglas-soares/rpc-quick/src/rpc"
 )
 
-type NamingResult struct {
+type namingRequest struct {
+	ServerName string
+	Addr       string
+}
+
+type namingResult struct {
 	Addr string
 }
 
@@ -41,26 +46,29 @@ func (n *naming) StartClient(tlsConfig *tls.Config) {
 }
 
 func (n *naming) Bind(serverName string, serverAddr string) error {
-	return n.client.Call(nil, "Bind", serverName, serverAddr)
+	return n.client.Call("Bind", namingRequest{
+		ServerName: serverName,
+		Addr:       serverAddr,
+	}, nil)
 }
 
-func (n *naming) LookUp(serverName string) (NamingResult, error) {
-	var result NamingResult
-	err := n.client.Call(&result, "LookUp", serverName)
+func (n *naming) LookUp(serverName string) (string, error) {
+	var result namingResult
+	err := n.client.Call("LookUp", serverName, &result)
 	if err != nil {
-		return NamingResult{}, err
+		return "", err
 	}
-	return result, nil
+	return result.Addr, nil
 }
 
-func (n *naming) bind(serverName string, serverInfo string) {
+func (n *naming) bind(req namingRequest) {
 	// missing handle threads
-	servers[serverName] = serverInfo
-	log.Println(serverName, "inserted with infos:", serverInfo)
+	servers[req.ServerName] = req.Addr
+	log.Println(req.ServerName, "inserted with infos:", req.Addr)
 	log.Println(servers)
 }
 
-func (n *naming) lookUp(serverName string) NamingResult {
+func (n *naming) lookUp(serverName string) namingResult {
 	fmt.Println("lookup result:", servers[serverName])
-	return NamingResult{Addr: servers[serverName]}
+	return namingResult{Addr: servers[serverName]}
 }
