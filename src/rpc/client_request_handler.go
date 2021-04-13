@@ -11,6 +11,7 @@ type clientRequestHandler struct {
 	quicConfig *quic.Config
 	tlsConfig  *tls.Config
 	conn       quic.Stream
+	addr       string
 }
 
 func newClientRequestHandler(tlsConfig *tls.Config, quicConfig *quic.Config) *clientRequestHandler {
@@ -20,30 +21,48 @@ func newClientRequestHandler(tlsConfig *tls.Config, quicConfig *quic.Config) *cl
 	}
 }
 
-func (h *clientRequestHandler) send(addr string, msg []byte) ([]byte, error) {
-	var transport transportHelper
-	if h.conn == nil {
-		session, err := quic.DialAddrEarly(addr, h.tlsConfig, h.quicConfig)
-		if err != nil {
-			fmt.Println(1, "client:", err)
-		}
+func (h *clientRequestHandler) dialAndSend(addr string, msg []byte) ([]byte, error) {
+	err := h.dial(addr)
+	if err != nil {
+		return nil, err
+	}
+	return h.send(msg)
+}
 
-		stream, err := session.OpenStream()
-		if err != nil {
-			fmt.Println(2, "client:", err)
-		}
-
-		h.conn = stream
+func (h *clientRequestHandler) dial(addr string) error {
+	if h.conn != nil && h.addr == addr {
+		return nil
 	}
 
-	transport = newTransportHelper(h.conn)
+	h.addr = addr
+
+	session, err := quic.DialAddrEarly(addr, h.tlsConfig, h.quicConfig)
+	if err != nil {
+		fmt.Println(1, "client:", err)
+		return err
+	}
+
+	stream, err := session.OpenStream()
+	if err != nil {
+		fmt.Println(2, "client:", err)
+		return err
+	}
+
+	h.conn = stream
+
+	return nil
+}
+
+func (h *clientRequestHandler) send(msg []byte) ([]byte, error) {
+	transport := newTransportHelper(h.conn)
 
 	err := transport.send(msg)
 	if err != nil {
 		if err.Error() == "NO_ERROR: No recent network activity" {
 			h.conn = nil
-			return h.send(addr, msg)
+			return h.dialAndSend(h.addr, msg)
 		}
+		return nil, err
 	}
 
 	return transport.read()

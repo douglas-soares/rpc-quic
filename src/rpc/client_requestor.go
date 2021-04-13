@@ -23,18 +23,18 @@ func newRequestor(crh *clientRequestHandler) requestor {
 	}
 }
 
-func (r *requestor) Invoke(location, function string, args interface{}) interface{} {
+func (r *requestor) invoke(location, function string, args interface{}) clientResponse {
 	request := clientRequest{
 		Function: function,
 		Args:     args,
 	}
 
-	msgmarshaled, err := marshal(request)
+	message, err := marshal(request)
 	if err != nil {
 		return r.returnError(err)
 	}
 
-	reqResponse, err := r.requestHandler.send(location, msgmarshaled)
+	reqResponse, err := r.requestHandler.dialAndSend(location, message)
 	if err != nil {
 		return r.returnError(err)
 	}

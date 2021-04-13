@@ -8,8 +8,12 @@ import (
 )
 
 type invoker struct {
-	funcs     map[string]reflect.Value
-	funcParam map[string]reflect.Type
+	funcs map[string]funcContent
+}
+
+type funcContent struct {
+	Function    reflect.Value
+	FuncArgType reflect.Type
 }
 
 type serverRequest struct {
@@ -23,11 +27,9 @@ type serverResponse struct {
 }
 
 func newInvoker() *invoker {
-	funcs := make(map[string]reflect.Value)
-	funcParam := make(map[string]reflect.Type)
+	funcs := make(map[string]funcContent)
 	return &invoker{
-		funcs:     funcs,
-		funcParam: funcParam,
+		funcs: funcs,
 	}
 }
 
@@ -50,11 +52,15 @@ func (i *invoker) Register(function string, fFunc interface{}) error {
 		return fmt.Errorf("register error: function has more than 1 parameters")
 	}
 
-	i.funcs[function] = reflect.ValueOf(fFunc)
+	functionContent := funcContent{
+		Function: reflect.ValueOf(fFunc),
+	}
 
 	if fFuncType.NumIn() == 1 {
-		i.funcParam[function] = fFuncType.In(0)
+		functionContent.FuncArgType = fFuncType.In(0)
 	}
+
+	i.funcs[function] = functionContent
 
 	fmt.Println("function", function, "registred")
 
@@ -87,17 +93,17 @@ func (i *invoker) invoke(data []byte) []byte {
 }
 
 func (i *invoker) execute(req serverRequest) serverResponse {
-	f, ok := i.funcs[req.Function]
+	functionContent, ok := i.funcs[req.Function]
 	if !ok {
 		err := fmt.Sprintf("func %s not registered", req.Function)
 		return serverResponse{Result: nil, Err: err}
 	}
 
-	paramType, funcHasParam := i.funcParam[req.Function]
+	argType := functionContent.FuncArgType
 
 	var inArgs []reflect.Value
 
-	if funcHasParam {
+	if argType != nil {
 		if req.Args == nil {
 			err := fmt.Sprintf("func %s requires a parameter", req.Function)
 			return serverResponse{Result: nil, Err: err}
@@ -105,10 +111,10 @@ func (i *invoker) execute(req serverRequest) serverResponse {
 
 		// force pointer
 		var argv reflect.Value
-		if paramType.Kind() == reflect.Ptr {
-			argv = reflect.New(paramType.Elem())
+		if argType.Kind() == reflect.Ptr {
+			argv = reflect.New(argType.Elem())
 		} else {
-			argv = reflect.New(paramType)
+			argv = reflect.New(argType)
 		}
 
 		err := unmarshal(*req.Args, argv.Interface())
@@ -120,7 +126,7 @@ func (i *invoker) execute(req serverRequest) serverResponse {
 	}
 
 	// invoke requested method
-	out := f.Call(inArgs)
+	out := functionContent.Function.Call(inArgs)
 	if len(out) == 0 {
 		return serverResponse{}
 	}

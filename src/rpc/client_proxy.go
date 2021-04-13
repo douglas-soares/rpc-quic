@@ -19,8 +19,7 @@ func newClientProxy(serverAddr string, crh *clientRequestHandler) *proxy {
 }
 
 func (p *proxy) Call(function string, arg interface{}, result interface{}) error {
-	reqResponse := p.Invoke(p.serverAddr, function, arg)
-	response := reqResponse.(clientResponse)
+	response := p.invoke(p.serverAddr, function, arg)
 
 	if response.Err != "" {
 		return fmt.Errorf(response.Err)
