@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/tls"
-	"fmt"
-	"log"
+	"crypto/x509"
+	"encoding/pem"
+	"math/big"
 	"net"
 
 	"github.com/douglas-soares/rpc-quick/comparison/grpc/proto"
@@ -23,18 +26,16 @@ func (s *Server) Fibonacci(ctx context.Context, req *proto.FiboRequest) (*proto.
 func main() {
 	listener, err := net.Listen("tcp", ":8082")
 	if err != nil {
-		log.Fatalf("Failed to start listening: %v", err)
+		panic(err)
 	}
 
 	s := Server{}
 
-	grpcServer := grpc.NewServer(grpc.Creds(credentials.NewTLS(GenerateTLSConfig())))
+	grpcServer := grpc.NewServer(grpc.Creds(credentials.NewTLS(generateTLSConfig())))
 	proto.RegisterFiboServiceServer(grpcServer, &s)
 
-	fmt.Println("listening 8082")
-
 	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("serve closed: %v", err)
+		panic(err)
 	}
 }
 
@@ -45,14 +46,24 @@ func fibonacci(n int64) int64 {
 	return fibonacci(n-1) + fibonacci(n-2)
 }
 
-func GenerateTLSConfig() *tls.Config {
-	cert, err := tls.LoadX509KeyPair("../../../cert.pem", "../../../key.pem")
+func generateTLSConfig() *tls.Config {
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		panic(err)
 	}
+	template := x509.Certificate{SerialNumber: big.NewInt(1)}
+	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
+	if err != nil {
+		panic(err)
+	}
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
 
+	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
+	if err != nil {
+		panic(err)
+	}
 	return &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		NextProtos:   []string{"quic-echo-example"},
+		Certificates: []tls.Certificate{tlsCert},
 	}
 }
