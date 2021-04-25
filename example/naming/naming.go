@@ -8,7 +8,7 @@ import (
 	"encoding/pem"
 	"math/big"
 
-	naming "github.com/douglas-soares/rpc-quick/src/naming_service"
+	naming "github.com/douglas-soares/rpc-quic/src/naming_service"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module github.com/douglas-soares/rpc-quick
+module github.com/douglas-soares/rpc-quic
 
 go 1.14
 

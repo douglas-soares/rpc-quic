@@ -8,8 +8,8 @@ import (
 	"encoding/pem"
 	"math/big"
 
-	naming "github.com/douglas-soares/rpc-quick/src/naming_service"
-	"github.com/douglas-soares/rpc-quick/src/rpc"
+	naming "github.com/douglas-soares/rpc-quic/src/naming_service"
+	"github.com/douglas-soares/rpc-quic/src/rpc"
 	quic "github.com/lucas-clemente/quic-go"
 )
 

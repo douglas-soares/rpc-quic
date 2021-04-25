@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/douglas-soares/rpc-quick/src/rpc"
+	"github.com/douglas-soares/rpc-quic/src/rpc"
 )
 
 type namingRequest struct {
