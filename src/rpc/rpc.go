@@ -6,13 +6,12 @@ import (
 	quic "github.com/lucas-clemente/quic-go"
 )
 
-// Client con stains
 type Client interface {
 	Call(function string, arg interface{}, result interface{}) error
 	Close() error
 }
 
-// NewClient creates
+// NewClient creates a new RPC-QUIC client. It enables to connect with the server
 func NewClient(serverAddr string, tlsConfig *tls.Config, quicConfig *quic.Config) Client {
 	crh := newClientRequestHandler(tlsConfig, quicConfig)
 	return newClientProxy(serverAddr, crh)
@@ -28,6 +27,7 @@ type server struct {
 	srh serverRequestHandler
 }
 
+// NewServer creates a new RPC-QUIC server
 func NewServer() Server {
 	invoker := newInvoker()
 	serverRequestHandler := newServerRequestHandler(invoker)
@@ -38,10 +38,12 @@ func NewServer() Server {
 	}
 }
 
+// Register registers a remote function
 func (s *server) Register(function string, fFunc interface{}) {
 	s.inv.Register(function, fFunc)
 }
 
+// ListenAndServe starts to listen for client connections
 func (s *server) ListenAndServe(addr string, tlsConfig *tls.Config, quicConfig *quic.Config) error {
 	return s.srh.ListenAndServe(addr, tlsConfig, quicConfig)
 }

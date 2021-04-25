@@ -12,7 +12,6 @@ type serverRequestHandler struct {
 	invoker *invoker
 }
 
-// newRequestHandler sada
 func newServerRequestHandler(invoker *invoker) serverRequestHandler {
 	return serverRequestHandler{invoker: invoker}
 }
@@ -34,7 +33,6 @@ func (h serverRequestHandler) ListenAndServe(addr string, tlsConfig *tls.Config,
 		}
 		stream, err = sess.AcceptStream(context.Background())
 		if err != nil {
-			fmt.Println(3, "server:", err)
 			return err
 		}
 		go func() {
@@ -47,7 +45,6 @@ func (h serverRequestHandler) ListenAndServe(addr string, tlsConfig *tls.Config,
 				response := h.invoker.invoke(data)
 				err = transport.send(response)
 				if err != nil {
-					fmt.Println("error sending to client", err)
 					return
 				}
 			}

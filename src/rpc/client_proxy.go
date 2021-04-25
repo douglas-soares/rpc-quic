@@ -7,8 +7,6 @@ type proxy struct {
 	requestor
 }
 
-// newClientProxy creates a client proxy that translates the local invocation
-// into parameters for the REQUESTOR, triggers the invocation and returns the result
 func newClientProxy(serverAddr string, crh *clientRequestHandler) *proxy {
 	r := newRequestor(crh)
 

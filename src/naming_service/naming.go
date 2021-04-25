@@ -25,6 +25,7 @@ type naming struct {
 
 var servers map[string]string
 
+// NewNamingService creates a new naming service
 func NewNamingService(addr string) *naming {
 	servers = make(map[string]string)
 	server := rpc.NewServer()
@@ -35,16 +36,19 @@ func NewNamingService(addr string) *naming {
 	}
 }
 
+// ListenAndServe starts to listen for connections to bind or lookup functions
 func (n *naming) ListenAndServe(tlsConfig *tls.Config) error {
 	n.server.Register("Bind", n.bind)
 	n.server.Register("LookUp", n.lookUp)
 	return n.server.ListenAndServe(n.addr, tlsConfig, nil)
 }
 
+// StartClient starts a client connection with the naming server
 func (n *naming) StartClient(tlsConfig *tls.Config) {
 	n.client = rpc.NewClient(n.addr, tlsConfig, nil)
 }
 
+// Bind registers a map of server name to its address
 func (n *naming) Bind(serverName string, serverAddr string) error {
 	return n.client.Call("Bind", namingRequest{
 		ServerName: serverName,
@@ -52,6 +56,7 @@ func (n *naming) Bind(serverName string, serverAddr string) error {
 	}, nil)
 }
 
+// LookUp returns the server address, if registered
 func (n *naming) LookUp(serverName string) (string, error) {
 	var result namingResult
 	err := n.client.Call("LookUp", serverName, &result)
@@ -62,7 +67,6 @@ func (n *naming) LookUp(serverName string) (string, error) {
 }
 
 func (n *naming) bind(req namingRequest) {
-	// missing handle threads
 	servers[req.ServerName] = req.Addr
 	log.Println(req.ServerName, "inserted with infos:", req.Addr)
 	log.Println(servers)

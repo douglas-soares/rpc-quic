@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"math/big"
 
 	naming "github.com/douglas-soares/rpc-quick/src/naming_service"
@@ -16,10 +15,11 @@ func main() {
 	n := naming.NewNamingService("localhost:4040")
 	err := n.ListenAndServe(generateTLSConfig())
 	if err != nil {
-		fmt.Println("failed to start naming server ", err)
+		panic(err)
 	}
 }
 
+// Setup a bare-bones TLS config for the server
 func generateTLSConfig() *tls.Config {
 	key, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {

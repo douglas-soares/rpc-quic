@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"crypto/tls"
-	"fmt"
 
 	quic "github.com/lucas-clemente/quic-go"
 )
@@ -38,13 +37,11 @@ func (h *clientRequestHandler) dial(addr string) error {
 
 	session, err := quic.DialAddrEarly(addr, h.tlsConfig, h.quicConfig)
 	if err != nil {
-		fmt.Println(1, "client:", err)
 		return err
 	}
 
 	stream, err := session.OpenStream()
 	if err != nil {
-		fmt.Println(2, "client:", err)
 		return err
 	}
 

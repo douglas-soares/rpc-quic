@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 
 	msgpack "github.com/vmihailenco/msgpack/v5"
@@ -62,22 +63,19 @@ func (i *invoker) Register(function string, fFunc interface{}) error {
 
 	i.funcs[function] = functionContent
 
-	fmt.Println("function", function, "registred")
-
 	return nil
 }
 
 func (i *invoker) invoke(data []byte) []byte {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Recovered from panic in invoke", r)
+			log.Println("Recovered from panic in invoke", r)
 		}
 	}()
 
 	var req serverRequest
 	err := unmarshal(data, &req)
 	if err != nil {
-		fmt.Println("invoker 1", err)
 		return i.returnError(err)
 	}
 
@@ -85,7 +83,6 @@ func (i *invoker) invoke(data []byte) []byte {
 
 	marshaledResponse, err := marshal(response)
 	if err != nil {
-		fmt.Println("invoker 2", err)
 		return i.returnError(err)
 	}
 
